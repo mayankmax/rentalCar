@@ -1,3 +1,5 @@
+package com.example.RentCar.Models;
+
 import com.example.RentCar.Models.enums.Role;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,7 +20,7 @@ import java.util.Collections;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class User extends  BaseModel implements UserDetails {
+public class User extends BaseModel implements UserDetails {
 
     @NotNull
     private String userName;

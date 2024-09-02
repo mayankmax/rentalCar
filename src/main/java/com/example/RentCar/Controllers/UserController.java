@@ -1,64 +1,50 @@
 package com.example.RentCar.Controllers;
 
 
-import com.example.RentCar.DTOS.UserRequestDTO;
-import com.example.RentCar.DTOS.UserResponseDTO;
-import com.example.RentCar.Exceptions.UserException;
-import com.example.RentCar.Models.User;
-import com.example.RentCar.Services.UserServices;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import com.example.RentCar.DTOS.UserAddressRequestDTO;
+import com.example.RentCar.DTOS.UserAddressResponseDTO;
+import com.example.RentCar.Services.AddressService;
+import com.example.RentCar.Services.JwtServicesImpl;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-
 @RestController
-@RequestMapping("/api/auth/")
+@RequestMapping("user")
 public class UserController {
 
-
-    @Autowired
-    private UserServices userService;
-    private UserController(UserServices userServices){
-        this.userService = userService;
-    }
-
-    @PostMapping("/signup")
-    public ResponseEntity<UserResponseDTO> signup(@RequestBody @Valid UserRequestDTO userRequestDtos) throws IOException {
-
-        System.out.println(userRequestDtos.getUserName());
-
+//    @Autowired
+//    private final JwtServicesImpl jwtServices;
+//    private final AddressService addressService;
+//
+//    public UserController(JwtServicesImpl jwtServices, AddressService addressService) {
+//        this.jwtServices = jwtServices;
+//        this.addressService = addressService;
+//    }
+    @PostMapping("/modifyaddress")
+    //@PreAuthorize("hasRole('User')")
+    public ResponseEntity<UserAddressResponseDTO> ModifyAddress(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token, @RequestBody @Valid UserAddressRequestDTO userAddressRequestDTO){
+        JwtServicesImpl jwtServices = new JwtServicesImpl();
+        AddressService addressService = new AddressService();
         try {
-            UserResponseDTO userResponseDTO = userService.signup(userRequestDtos);
-            return ResponseEntity.ok(userResponseDTO);
-        } catch (UserException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new UserResponseDTO<>(e.getMessage(), "error", null,null));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new UserResponseDTO<>("Internal server error", "error", null,null));
-        }
-    }
-
-
-    @GetMapping("/login")
-    public ResponseEntity<UserResponseDTO<User>> login(@RequestParam("userEmail") String userEmail, @RequestParam("userPassword") String userPassword) throws IOException {
-        try {
-            User user = userService.login(userEmail, userPassword);
-
-            if (user != null) {
-                // User is found
-                return ResponseEntity.ok(new UserResponseDTO<>("Logged in Successful", "success", user,"token"));
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new UserResponseDTO<>("Internal server error", "error", null,null));
+            String userEmail = jwtServices.extractUserName(token);
+            System.out.println("user from controller" + userEmail);
+            UserAddressResponseDTO userAddressResponseDTO = addressService.UserAddressModify(userAddressRequestDTO,userEmail);
+            if(userAddressResponseDTO != null)
+            {
+                return ResponseEntity.ok(userAddressResponseDTO);
             }
-        } catch (UserException e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new UserResponseDTO<>(e.getMessage(),"error",null,null));
+        }catch(Exception e) {
+
+            e.printStackTrace();
+
         }
+
+        return null;
 
     }
 

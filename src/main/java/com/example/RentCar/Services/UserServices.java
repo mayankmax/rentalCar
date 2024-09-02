@@ -20,33 +20,34 @@ import org.springframework.stereotype.Service;
 
 
 @Service
-@NoArgsConstructor(force = true)
-@RequiredArgsConstructor
 public class UserServices {
 
+
     @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     private AuthenticationManager authenticationManager;
-    private PasswordEncoder passwordEncoder;
-    private final JwtServicesImpl jwtService;
 
-    public UserServices(UserRepository userRepository, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, JwtServicesImpl jwtService) {
+    @Autowired
+    private final PasswordEncoder passwordEncoder;
+
+
+
+    public UserServices(UserRepository userRepository, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
         this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
+        //this.jwtService = jwtService;
     }
 
     public UserResponseDTO signup(UserRequestDTO userRequestDtos) throws UserException {
 
+         JwtServicesImpl jwtServices = new JwtServicesImpl();
 
 
         String name = userRequestDtos.getUserName();
         String email = userRequestDtos.getUserEmail();
         String password = userRequestDtos.getPassword();
-
-
 
 //        String confirmPassword = userRequestDtos.getConfirmPassword();
 
@@ -83,22 +84,11 @@ public class UserServices {
             Role role = Role.valueOf("User");
 
 
-           // password = passwordEncoder.encode(userRequestDtos.getPassword());
-
-
-
-//            var user = (UserDetails) User.builder().userName(name)
-//                    .userEmail(email).password(passwordEncoder.encode(userRequestDtos.getPassword()))
-//                    .role(Role.User).build();
-
-            User user = new User(name, email, password,role);
-
-            System.out.println(user);
-
-
+            User user = new User(name, email, passwordEncoder.encode(password),role);
             userRepository.save(user);
-            String jwt  = jwtService.generateToken(user);
-            System.out.println(jwt);
+
+            String jwt  = jwtServices.generateToken(user); //The JwtService is invoked to generate a JWT for the User object.
+            //System.out.println(jwt);
 
             UserResponseDTO userResponseDTO = new UserResponseDTO<>("User created successfully", "success", user,jwt);
 
@@ -107,7 +97,13 @@ public class UserServices {
             throw e;
         } catch (UserException e) {
             throw e;
-        } catch (Exception e) {
+        }catch(NullPointerException e){
+            System.out.println(e);
+            e.printStackTrace();
+            throw e;
+
+        }
+        catch (Exception e) {
             // Log the exception
             //  logger.error("Exception occurred while signing up user: ", e);
 
@@ -117,8 +113,9 @@ public class UserServices {
     }
 
 
-    public User login(String email, String password)throws UserException {
-
+    public String login(String email, String password)throws UserException {
+        //System.out.println(email + password);
+        JwtServicesImpl jwtServices = new JwtServicesImpl();
 
         try {
 
@@ -131,11 +128,17 @@ public class UserServices {
 
 
             // Check if the provided password matches the stored password
-            if (!userRepository.findByuserEmail(email).getPassword().equals(password)) {
+            if (passwordEncoder.matches(userRepository.findByuserEmail(email).getPassword(),password)) {
                 throw new UserException.InvalidPasswordException("Incorrect password");
             }
 
-            return userRepository.findByuserEmail(email);
+            User user = userRepository.findByuserEmail(email);
+            if(user != null){
+               // System.out.println(user.getUserEmail());
+                return  jwtServices.generateToken(user);
+            }else{
+                return "Login Failed";
+            }
         } catch (UserException.InvalidEmailException e) {
             throw e;
         } catch (UserException.InvalidPasswordException e) {
@@ -146,9 +149,7 @@ public class UserServices {
         }
     }
 
-    public User userDetailsService(String email) {
-        return userRepository.findByuserEmail(email);
-    }
+
 
 
 }

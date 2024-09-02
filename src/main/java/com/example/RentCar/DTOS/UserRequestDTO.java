@@ -1,6 +1,5 @@
 package com.example.RentCar.DTOS;
 
-import com.example.RentCar.Models.enums.Role;
 import lombok.*;
 
 @Getter
