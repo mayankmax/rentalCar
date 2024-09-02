@@ -14,7 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("user")
+@RequestMapping("/user/")
 public class UserController {
 
 //    @Autowired
@@ -27,11 +27,13 @@ public class UserController {
 //    }
     @PostMapping("/modifyaddress")
     //@PreAuthorize("hasRole('User')")
-    public ResponseEntity<UserAddressResponseDTO> ModifyAddress(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token, @RequestBody @Valid UserAddressRequestDTO userAddressRequestDTO){
+    public ResponseEntity<UserAddressResponseDTO> ModifyAddress( @RequestBody @Valid UserAddressRequestDTO userAddressRequestDTO){
+
+       System.out.println("bhb");
         JwtServicesImpl jwtServices = new JwtServicesImpl();
         AddressService addressService = new AddressService();
         try {
-            String userEmail = jwtServices.extractUserName(token);
+            String userEmail = "john.doe@example.com";
             System.out.println("user from controller" + userEmail);
             UserAddressResponseDTO userAddressResponseDTO = addressService.UserAddressModify(userAddressRequestDTO,userEmail);
             if(userAddressResponseDTO != null)

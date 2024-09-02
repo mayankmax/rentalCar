@@ -49,6 +49,8 @@ public class UserServices {
         String email = userRequestDtos.getUserEmail();
         String password = userRequestDtos.getPassword();
 
+        System.out.println("name"+name + "email" + email + "password" + password);
+
 //        String confirmPassword = userRequestDtos.getConfirmPassword();
 
         ProfileConstraints profileConstraints = new ProfileConstraints();

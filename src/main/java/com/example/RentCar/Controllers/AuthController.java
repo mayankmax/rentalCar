@@ -28,7 +28,7 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<UserResponseDTO> signup(@RequestBody @Valid UserRequestDTO userRequestDtos) throws IOException {
 
-
+//        System.out.println("I am inside signup controller" + userRequestDtos);
 
         try {
             UserResponseDTO userResponseDTO = userService.signup(userRequestDtos);
